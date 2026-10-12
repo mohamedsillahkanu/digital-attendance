@@ -69,6 +69,25 @@
             letter-spacing: 1px;
         }
 
+        .page-header .meeting-title {
+            display: inline-block;
+            margin: 4px 0 6px;
+            padding: 8px 16px;
+            background: #ffffff;
+            color: #004080;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .page-header .meeting-venue {
+            font-size: 13px;
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
         .page-header .subtitle {
             font-size: 13px;
             color: #ffffff;
@@ -356,6 +375,8 @@
             <h3>Ministry of Health<br>National Malaria Control Programme</h3>
             <p class="tagline"><em>National Malaria Strategic Plan 2026-2030</em></p>
             <h1>DIGITAL ATTENDANCE LIST</h1>
+            <div class="meeting-title" id="meetingTitle"></div>
+            <div class="meeting-venue" id="meetingVenue"></div>
             <p class="subtitle">Please sign in by completing the form below</p>
         </div>
 
@@ -416,8 +437,6 @@
                         <div class="error-message" id="organizationError">Please enter your organization</div>
                     </div>
 
-                
-
                     <button type="submit" class="submit-btn" id="submitBtn">
                         📤 SIGN IN
                     </button>
@@ -427,7 +446,7 @@
 
         <!-- FOOTER -->
         <div class="page-footer">
-            <p style="margin: 0;">National Malaria Conrol Programme (NMCP)</p>
+            <p style="margin: 0;">National Malaria Control Programme (NMCP)</p>
             <p>© 2025 NMCP. All rights reserved.</p>
             <p>Designed and Developed by ICF-SL</p>
         </div>
@@ -443,6 +462,8 @@
         // CONFIGURATION
         // ============================================
         const CONFIG = {
+            MEETING_TITLE: 'MICROPLANNING MEETING',
+            MEETING_VENUE: 'Companero Hotel, Bureh Village',
             SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxlz-othFnL_JhIS8BSu7xX-03LQgkQIEHWuTnZrADo8vTo824D72xnWGpJeaTg6Og7zA/exec',
             GOOGLE_SHEET_URL: 'https://docs.google.com/spreadsheets/d/1D61rKhpqjyBgFGmPfcsZPcYA_bj-mzSp057H65NRG_U/edit?gid=0#gid=0'
         };
@@ -459,9 +480,15 @@
         // INITIALIZATION
         // ============================================
         function init() {
+            renderMeetingTitle();
             updateOnlineStatus();
             loadAttendeeCount();
             setupEventListeners();
+        }
+
+        function renderMeetingTitle() {
+            document.getElementById('meetingTitle').textContent = CONFIG.MEETING_TITLE;
+            document.getElementById('meetingVenue').textContent = CONFIG.MEETING_VENUE;
         }
 
         function setupEventListeners() {
@@ -519,7 +546,6 @@
         function validateForm() {
             let isValid = true;
             
-            // Clear all errors first
             document.querySelectorAll('.form-input').forEach(input => {
                 input.classList.remove('error');
             });
@@ -527,7 +553,6 @@
                 msg.classList.remove('show');
             });
 
-            // First Name
             const firstName = document.getElementById('firstName');
             if (!firstName.value.trim()) {
                 firstName.classList.add('error');
@@ -535,7 +560,6 @@
                 isValid = false;
             }
 
-            // Last Name
             const lastName = document.getElementById('lastName');
             if (!lastName.value.trim()) {
                 lastName.classList.add('error');
@@ -543,7 +567,6 @@
                 isValid = false;
             }
 
-            // Email
             const email = document.getElementById('email');
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email.value.trim() || !emailRegex.test(email.value)) {
@@ -552,7 +575,6 @@
                 isValid = false;
             }
 
-            // Phone
             const phone = document.getElementById('phone');
             if (!phone.value.trim()) {
                 phone.classList.add('error');
@@ -560,7 +582,6 @@
                 isValid = false;
             }
 
-            // Organization
             const organization = document.getElementById('organization');
             if (!organization.value.trim()) {
                 organization.classList.add('error');
@@ -570,8 +591,6 @@
 
             return isValid;
         }
-
-           
 
         // ============================================
         // FORM SUBMISSION
@@ -595,26 +614,23 @@
                 last_name: formData.get('last_name').trim(),
                 email: formData.get('email').trim().toLowerCase(),
                 phone: formData.get('phone').trim(),
-                organization: formData.get('organization').trim()
-              
+                organization: formData.get('organization').trim(),
+                meeting_title: CONFIG.MEETING_TITLE,
+                meeting_venue: CONFIG.MEETING_VENUE
             };
 
             try {
-                const response = await fetch(CONFIG.SCRIPT_URL, {
+                await fetch(CONFIG.SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain;charset=utf-8',
                     },
                     body: JSON.stringify(data)
                 });
 
-                // Since we're using no-cors, we won't get a proper response
-                // Assume success if no error is thrown
                 updateAttendeeCount();
                 showNotification(`Welcome ${data.first_name}! You've been signed in.`, 'success');
-                
-                // Clear form
                 document.getElementById('attendanceForm').reset();
                 
             } catch (error) {
@@ -652,19 +668,16 @@
             }, 4000);
         }
 
-        // Remove error styling when user starts typing
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('input', function() {
                 this.classList.remove('error');
-                const errorId = this.id + 'Error';
-                const errorMsg = document.getElementById(errorId);
+                const errorMsg = document.getElementById(this.id + 'Error');
                 if (errorMsg) {
                     errorMsg.classList.remove('show');
                 }
             });
         });
 
-        // Initialize
         init();
     </script>
 </body>
